@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react'; // Added useCallback
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import './chatroom.css';
 
 const ChatRoom = () => {
@@ -10,7 +10,17 @@ const ChatRoom = () => {
   const clientId = useRef(Math.random().toString(36).substring(7));
   const messagesContainerRef = useRef(null);
 
-  // Move connectWebSocket into useCallback
+  // First, define the message handling function
+  const handleNewMessage = useCallback((content, isSender) => {
+    setMessages(prev => [...prev, { text: content, isSender }]);
+    setTimeout(() => {
+      if (messagesContainerRef.current) {
+        messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
+      }
+    }, 0);
+  }, []);
+
+  // Then use it in connectWebSocket
   const connectWebSocket = useCallback(() => {
     setIsConnecting(true);
     const ws = new WebSocket(`ws://localhost:8000/ws/${clientId.current}`);
@@ -23,7 +33,7 @@ const ChatRoom = () => {
 
     ws.addEventListener('message', (event) => {
       const data = JSON.parse(event.data);
-      addMessage(data.message, false);
+      handleNewMessage(data.message, false);
     });
 
     ws.addEventListener('close', () => {
@@ -40,17 +50,7 @@ const ChatRoom = () => {
     });
 
     wsRef.current = ws;
-  }, []); // Empty dependency array since we're only using refs inside
-
-  // Define addMessage with useCallback since it's used in connectWebSocket
-  const addMessage = useCallback((content, isSender) => {
-    setMessages(prev => [...prev, { text: content, isSender }]);
-    setTimeout(() => {
-      if (messagesContainerRef.current) {
-        messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
-      }
-    }, 0);
-  }, []);
+  }, [handleNewMessage]); // Add handleNewMessage to dependencies
 
   useEffect(() => {
     connectWebSocket();
@@ -59,7 +59,7 @@ const ChatRoom = () => {
         wsRef.current.close();
       }
     };
-  }, [connectWebSocket]); // Now this dependency is stable
+  }, [connectWebSocket]);
 
   const handleSendMessage = (e) => {
     e?.preventDefault();
@@ -71,7 +71,7 @@ const ChatRoom = () => {
         userId: clientId.current
       }));
       
-      addMessage(message, true);
+      handleNewMessage(message, true);
       setNewMessage("");
     }
   };
