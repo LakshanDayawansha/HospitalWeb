@@ -23,7 +23,7 @@ const ChatRoom = () => {
   // Then use it in connectWebSocket
   const connectWebSocket = useCallback(() => {
     setIsConnecting(true);
-    const ws = new WebSocket(`ws://localhost:8000/ws/${clientId.current}`);
+    const ws = new WebSocket(`ws://3.91.15.53:8000/ws/${clientId.current}`);
 
     ws.addEventListener('open', () => {
       console.log('Connected to WebSocket server');
@@ -79,7 +79,7 @@ const ChatRoom = () => {
   return (
     <div className="chat-room-container">
       <div className="chat-header">
-        <span>Chat Room</span>
+        <span>Horizon Hospitals PLC</span>
       </div>
       <div 
         className="messages-container" 
