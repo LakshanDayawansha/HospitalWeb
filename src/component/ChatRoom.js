@@ -1,6 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react'; // Added useCallback
 import './chatroom.css';
-
 
 const ChatRoom = () => {
   const [messages, setMessages] = useState([]);
@@ -11,16 +10,8 @@ const ChatRoom = () => {
   const clientId = useRef(Math.random().toString(36).substring(7));
   const messagesContainerRef = useRef(null);
 
-  useEffect(() => {
-    connectWebSocket();
-    return () => {
-      if (wsRef.current) {
-        wsRef.current.close();
-      }
-    };
-  }, [connectWebSocket]);
-
-  const connectWebSocket = () => {
+  // Move connectWebSocket into useCallback
+  const connectWebSocket = useCallback(() => {
     setIsConnecting(true);
     const ws = new WebSocket(`ws://localhost:8000/ws/${clientId.current}`);
 
@@ -49,16 +40,26 @@ const ChatRoom = () => {
     });
 
     wsRef.current = ws;
-  };
+  }, []); // Empty dependency array since we're only using refs inside
 
-  const addMessage = (content, isSender) => {
+  // Define addMessage with useCallback since it's used in connectWebSocket
+  const addMessage = useCallback((content, isSender) => {
     setMessages(prev => [...prev, { text: content, isSender }]);
     setTimeout(() => {
       if (messagesContainerRef.current) {
         messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
       }
     }, 0);
-  };
+  }, []);
+
+  useEffect(() => {
+    connectWebSocket();
+    return () => {
+      if (wsRef.current) {
+        wsRef.current.close();
+      }
+    };
+  }, [connectWebSocket]); // Now this dependency is stable
 
   const handleSendMessage = (e) => {
     e?.preventDefault();
@@ -79,7 +80,6 @@ const ChatRoom = () => {
     <div className="chat-room-container">
       <div className="chat-header">
         <span>Chat Room</span>
-        
       </div>
       <div 
         className="messages-container" 
