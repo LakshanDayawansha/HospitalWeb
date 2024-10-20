@@ -18,7 +18,7 @@ const ChatRoom = () => {
         wsRef.current.close();
       }
     };
-  }, []);
+  }, [connectWebSocket]);
 
   const connectWebSocket = () => {
     setIsConnecting(true);
