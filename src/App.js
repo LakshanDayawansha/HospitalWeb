@@ -1,4 +1,3 @@
-import logo from "./logo.svg";
 import React, { useState } from "react";
 import ChatRoom from "./component/ChatRoom";
 import Header from "./component/Header";
